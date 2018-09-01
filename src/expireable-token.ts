@@ -73,6 +73,26 @@ export class ExpireableToken implements IExpireableToken {
   }
 
   /**
+   * Validate that a string token and email match up against an IExpireableToken
+   * @param obj 
+   * @param token 
+   * @param email 
+   */
+  static validateStrings(obj: IExpireableToken, token: string) {
+    return  obj.token === token;
+  }
+
+
+  /**
+   * Validate that objB matches objA
+   * @param objA 
+   * @param objB 
+   */
+  static validate(objA: IExpireableToken, objB: IExpireableToken) {
+    return ExpireableToken.validateStrings(objA, objB.token);
+  }
+
+  /**
    * Determine whether this password reset has expired or not
    */
   get hasExpired() {
@@ -92,6 +112,24 @@ export class ExpireableToken implements IExpireableToken {
   constructor(public email: string) {
     this.created = new Date();
     this.token = ExpireableToken.Generator();
+  }
+
+  /**
+   * Validate that another ExpireableToken is the same as this one
+   * @param other 
+   */
+  validate(other: IExpireableToken) {
+    return ExpireableToken.validate(this, other);
+  }
+
+
+  /**
+   * Validate that a token and email match up with this object
+   * @param token 
+   * @param email 
+   */
+  validateStrings(token: string) {
+    return ExpireableToken.validateStrings(this, token);
   }
 
 }
