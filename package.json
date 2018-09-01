@@ -1,0 +1,32 @@
+{
+  "name": "@jschmold/users",
+  "version": "0.0.1",
+  "description": "A package to handle user accounts in a server-sided application",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "gendocs": "typedoc --out docs --module node",
+    "test": "mocha -r ts-node/register src/**/*.spec.ts"
+  },
+  "keywords": [
+    "users",
+    "accounts",
+    "account management"
+  ],
+  "author": "Jonathan Schmold",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bcrypt": "^2.0.0",
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.9.4",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "tsc": "^1.20150623.0",
+    "typescript": "^3.0.1"
+  },
+  "dependencies": {
+    "bcrypt": "^3.0.0"
+  }
+}
