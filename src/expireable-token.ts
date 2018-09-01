@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-interface IPasswordReset {
+export interface IExpireableToken {
   /** The date that the reset was generated */
   created: Date;
   /** The token that is to be validated against */
@@ -10,9 +10,9 @@ interface IPasswordReset {
 }
 
 /**
- * The class used in an authentication module for password resets.
+ * The class used in an authentication module for password resets and activations.
  */
-export class PasswordReset implements IPasswordReset {
+export class ExpireableToken implements IExpireableToken {
 
   /**
    * Set the function that generates tokens. It is recommended the tokens are LONG.
@@ -22,14 +22,14 @@ export class PasswordReset implements IPasswordReset {
     if (typeof tst !== `string`)
       throw new Error('String generator does not return a string');
 
-    PasswordReset._generator = fn;
+    ExpireableToken._generator = fn;
   }
 
   /**
    * Function used for generating tokens
    */
   static get Generator() {
-    return PasswordReset._generator;
+    return ExpireableToken._generator;
   }
 
   private static _generator = () => randomBytes(64).toString('hex');
@@ -42,12 +42,12 @@ export class PasswordReset implements IPasswordReset {
     if ((typeof num !== 'number' && num !== null))
       throw new Error('ExpirationLength is not a valid value. Supports -1, null, and numbers greater than 0')
     
-    if (num <= 0) PasswordReset._expirationLength = null;
-    else PasswordReset._expirationLength = num;
+    if (num <= 0) ExpireableToken._expirationLength = null;
+    else ExpireableToken._expirationLength = num;
   }
 
   static get ExpirationLength() {
-    return PasswordReset._expirationLength;
+    return ExpireableToken._expirationLength;
   }
 
   private static _expirationLength = 1;
@@ -56,34 +56,34 @@ export class PasswordReset implements IPasswordReset {
    * Determine whether a password reset has expired or not
    * @param reset 
    */
-  static hasExpired(reset: IPasswordReset) {
-    if (PasswordReset._expirationLength === null) 
+  static hasExpired(reset: IExpireableToken) {
+    if (ExpireableToken._expirationLength === null) 
       return false;
     
-    return new Date().valueOf() >= PasswordReset.expiryDate(reset).valueOf();
+    return new Date().valueOf() >= ExpireableToken.expiryDate(reset).valueOf();
   }
 
   /**
    * Calculate the expiration of a reset object
    * @param reset 
    */
-  static expiryDate(reset: IPasswordReset) {
-    if (PasswordReset.ExpirationLength == null) return null;
-    return new Date(reset.created.getTime() + (PasswordReset.ExpirationLength * (60 ** 2) * 1000));
+  static expiryDate(reset: IExpireableToken) {
+    if (ExpireableToken.ExpirationLength == null) return null;
+    return new Date(reset.created.getTime() + (ExpireableToken.ExpirationLength * (60 ** 2) * 1000));
   }
 
   /**
    * Determine whether this password reset has expired or not
    */
   get hasExpired() {
-    return PasswordReset.hasExpired(this);
+    return ExpireableToken.hasExpired(this);
   }
 
   /**
    * Get the expiration date of this reset
    */
   get expiration() {
-    return PasswordReset.expiryDate(this);
+    return ExpireableToken.expiryDate(this);
   }
 
   created: Date;
@@ -91,7 +91,7 @@ export class PasswordReset implements IPasswordReset {
 
   constructor(public email: string) {
     this.created = new Date();
-    this.token = PasswordReset.Generator();
+    this.token = ExpireableToken.Generator();
   }
 
 }

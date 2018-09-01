@@ -1,2 +1,2 @@
 export * from './password';
-export * from './password-reset';
+export * from './expireable-token';
