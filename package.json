@@ -4,7 +4,7 @@
   "description": "A package to handle user accounts in a server-sided application",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.release.json",
     "gendocs": "typedoc --out docs --module node",
     "test": "mocha -r ts-node/register src/**/*.spec.ts"
   },

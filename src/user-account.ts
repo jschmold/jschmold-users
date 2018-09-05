@@ -19,19 +19,19 @@ export type AccountMode = 'username' | 'email' | 'hybrid'
 let statusKeys: AccountStatus[] = [ 'active', 'locked', 'activation' ];
 
 export interface IUserAccount {
-  username?: string;
-  password?: IPassword;
+  username?:    string;
   primaryEmail: string;
-  reset?: IExpireableToken;
-  emails: SecondaryEmail[];
-  status: AccountStatus;
-  activation?: ExpireableToken;
+  emails:       SecondaryEmail[];
+  status:       AccountStatus;
+  activation?:  ExpireableToken;
+  password?:    IPassword;
+  reset?:       IExpireableToken;
 }
 
 export class UserAccount implements IUserAccount {
-  reset?: IExpireableToken;
-  emails: SecondaryEmail[] = [];
   activation?: ExpireableToken;
+  emails:      SecondaryEmail[] = [];
+  reset?:      IExpireableToken;
 
   /**
    * Get the default status for newly created accounts
@@ -161,12 +161,16 @@ export class UserAccount implements IUserAccount {
     let primaryEmail = obj as string;
     let emails = Array.from(user.emails);
 
-    if (typeof obj === 'number')
+    if (typeof obj === 'number') {
+      let em = emails[obj];
+      if (em == null) throw new Error(`Index ${obj} is out of bounds; Email at user.emails at index is undefined.`);
+
       primaryEmail = user.emails[obj].email;
-    
+    }
+
 
     if (primaryEmail == null) throw new Error('No email to set');
-    
+
     return { ... UserAccount.fromObject(user), emails, primaryEmail };
   }
 
@@ -178,7 +182,7 @@ export class UserAccount implements IUserAccount {
   static async setPassword(user: IUserAccount, pwd: string | null): Promise<IUserAccount> {
     return { 
       ... UserAccount.fromObject(user),
-      password: pwd == null ? null : await Password.create(pwd),
+      password: pwd == null ? undefined : await Password.create(pwd),
     };
   }
 
@@ -219,12 +223,39 @@ export class UserAccount implements IUserAccount {
   static async create(email: string, password?: string): Promise<IUserAccount> {
     let obj: IUserAccount = {
       primaryEmail: email,
-      password: null,
       status: UserAccount.DefaultStatus,
-      emails: []
+      emails: [],
     }
     if (password) obj.password = await Password.create(password)
+
     return obj;
+  }
+
+  /**
+   * Create a user account and start the activation process.
+   * @param email 
+   * @param password 
+   */
+  static async register(email: string, password?: string): Promise<IUserAccount> {
+    let obj = await UserAccount.create(email, password);
+        obj = UserAccount.createActivation(obj);
+        obj = UserAccount.forceStatus(obj, 'activation');
+    return obj;
+  }
+
+  /**
+   * Attempt password validation on an active user whose password is not null.
+   * @param acc 
+   * @param password 
+   */
+  static async login(acc: IUserAccount, password: string) {
+    if (acc.status !== 'active') 
+      throw new Error('Account with non-active status attempting login');
+
+    if (acc.password == null)
+      throw new Error('User has nullified password');
+    
+    return Password.validate(acc.password!, password);
   }
 
   /**
@@ -235,11 +266,11 @@ export class UserAccount implements IUserAccount {
   static fromObject(obj: IUserAccount): UserAccount {
     let acc = new UserAccount(
       obj.primaryEmail, 
-      { ... obj.password },
+      { ... obj.password } as IPassword,
       obj.status, 
       obj.username
     );
-    [ 'activation', "reset" ]
+    ([ 'activation', "reset" ] as (keyof IUserAccount)[])
       .forEach(key => acc[key] = obj[key]);
     acc.emails = Array.from(obj.emails || [])
     if (acc.emails.length > 0) acc.emails = acc.emails.map(obj => ({ ... obj }));
@@ -252,7 +283,7 @@ export class UserAccount implements IUserAccount {
    */
   private constructor(
     public primaryEmail: string,
-    public password: IPassword,
+    public password: IPassword | undefined,
     public status: AccountStatus = 'activation',
     public username?: string,
   ) { 
@@ -268,7 +299,7 @@ export class UserAccount implements IUserAccount {
   }
 
   /**
-   * Attempt to activate this user account. Will delete activation token.
+   * Attempt to activate this user account
    * @param token 
    */
   activate(token: string) {
@@ -276,7 +307,7 @@ export class UserAccount implements IUserAccount {
       throw new Error('Unable to activate object. Activation token does not exist on object');
     
     if (ExpireableToken.validateStrings(this.activation, token) === false)
-      throw new Error('Unable to activate. Tokens for activation do not match')
+      throw new Error('Invalid token provided for activation');
     
     delete this.activation;
   }
@@ -319,6 +350,9 @@ export class UserAccount implements IUserAccount {
    * @param token 
    */
   applyReset(token: string) {
+    if (this.reset == null)
+      throw new Error('Reset on this instance is undefined. Nothing to validate against');
+
     if (ExpireableToken.validateStrings(this.reset, token) === false)
       throw new Error('Token does not align with the reset token')
 
@@ -334,7 +368,11 @@ export class UserAccount implements IUserAccount {
    */
   setPrimaryEmail(obj: string | number) {
     if (typeof obj === 'number') {
-      this.primaryEmail = this.emails[obj as number].email;
+      let email = this.emails[obj];
+      if (email == null) 
+        throw new Error('No email at index ' + obj);
+
+      this.primaryEmail = this.emails[obj].email;
       return;
     }
     if (typeof obj !== 'string')
@@ -346,8 +384,8 @@ export class UserAccount implements IUserAccount {
    * Force a password on this user object
    * @param pwd 
    */
-  async setPassword(pwd: string | null) {
-    this.password = pwd == null ? null : await Password.create(pwd);
+  async setPassword(pwd?: string) {
+    this.password = pwd == null ? undefined : await Password.create(pwd);
   }
 
   /**
@@ -355,7 +393,8 @@ export class UserAccount implements IUserAccount {
    * @param status 
    */
   forceStatus(status: AccountStatus) {
-
+    if(statusKeys.indexOf(status) === -1)
+      throw new Error('Unable to set invalid status.');
     this.status = status;
   }
 
@@ -371,5 +410,13 @@ export class UserAccount implements IUserAccount {
    */
   reactivate() {
     this.status = 'active'
+  }
+
+  /**
+   * Attempt a login on this account
+   * @param pwd 
+   */
+  login(pwd: string) {
+    return UserAccount.login(this, pwd);
   }
 }

@@ -69,10 +69,10 @@ describe('ExpireableToken', function() {
       let created = new Date();
       let expected = new Date(created.getTime() + (60 ** 2 * 1000));
 
-      let reset = new ExpireableToken(null);
+      let reset = new ExpireableToken('laksdjfkaslkjalsd');
           reset.created = created;
 
-      assert.equal(ExpireableToken.expiryDate(reset).valueOf(), expected.valueOf());
+      assert.equal(ExpireableToken.expiryDate(reset)!.valueOf(), expected.valueOf());
     })
   })
 
@@ -81,10 +81,10 @@ describe('ExpireableToken', function() {
       let created = new Date();
       let expected = new Date(created.getTime() + (60 ** 2 * 1000));
 
-      let reset = new ExpireableToken(null);
+      let reset = new ExpireableToken('lkjasdlkfjkljasdlkjasdljk');
           reset.created = created;
 
-      assert.equal(reset.expiration.valueOf(), expected.valueOf());
+      assert.equal(reset.expiration!.valueOf(), expected.valueOf());
     })
   })
 

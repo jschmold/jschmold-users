@@ -37,30 +37,33 @@ export class ExpireableToken implements IExpireableToken {
   /**
    * The expiration length in hours
    */
-  static set ExpirationLength(num: number) {
+  static set ExpirationLength(num: number | null) {
   
-    if ((typeof num !== 'number' && num !== null))
+    if (typeof num !== 'number' && num !== null)
       throw new Error('ExpirationLength is not a valid value. Supports -1, null, and numbers greater than 0')
     
-    if (num <= 0) ExpireableToken._expirationLength = null;
-    else ExpireableToken._expirationLength = num;
+    if (num == null || num <= 0)
+      ExpireableToken._expirationLength = null;
+    else
+      ExpireableToken._expirationLength = num;
   }
 
   static get ExpirationLength() {
     return ExpireableToken._expirationLength;
   }
 
-  private static _expirationLength = 1;
+  private static _expirationLength: number | null = 1;
 
   /**
    * Determine whether a password reset has expired or not
    * @param reset 
    */
   static hasExpired(reset: IExpireableToken) {
-    if (ExpireableToken._expirationLength === null) 
+    let expiration = ExpireableToken.expiryDate(reset);
+    if (ExpireableToken._expirationLength === null || expiration == null) 
       return false;
     
-    return new Date().valueOf() >= ExpireableToken.expiryDate(reset).valueOf();
+    return new Date().valueOf() >= expiration.valueOf();
   }
 
   /**
@@ -78,8 +81,8 @@ export class ExpireableToken implements IExpireableToken {
    * @param token 
    * @param email 
    */
-  static validateStrings(obj: IExpireableToken, token: string) {
-    return  obj.token === token;
+  static validateStrings(obj: IExpireableToken | undefined, token: string) {
+    return obj != null && obj.token === token;
   }
 
 
