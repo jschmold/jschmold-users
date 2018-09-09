@@ -51,8 +51,7 @@ export class Password implements IPassword {
    * @param raw 
    */
   public static async validate(pwd: IPassword, raw: string) {
-    let hash = await bcrypt.hash(raw, pwd.salt);
-    return pwd.hash === hash;
+    return bcrypt.compare(raw, pwd.hash);
   }
 
   /**
