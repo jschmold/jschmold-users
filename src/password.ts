@@ -57,7 +57,7 @@ export class Password implements IPassword {
   /**
    * Create a new password object. DO NOT USE THIS, use Password.create instead.
    */
-  private constructor(
+  protected constructor(
     public hash: string,
     public salt: string,
     public created: Date = new Date()

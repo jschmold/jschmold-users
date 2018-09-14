@@ -279,9 +279,10 @@ export class UserAccount implements IUserAccount {
   }
 
   /** 
-   * Internal constructor. Do not use this.
+   * Internal constructor. Do not use this unless you've read the file and
+   * understand what the constructor is actually doing.
    */
-  private constructor(
+   protected constructor(
     public primaryEmail: string,
     public password: IPassword | undefined,
     public status: AccountStatus = 'activation',

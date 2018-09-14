@@ -1,6 +1,6 @@
 {
   "name": "@jschmold/users",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "A package to handle user accounts in a server-sided application",
   "main": "dist/index.js",
   "scripts": {
@@ -27,6 +27,6 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "bcrypt": "^3.0.0"
+    "bcrypt": "^2.0.0"
   }
 }
